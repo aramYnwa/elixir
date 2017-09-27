@@ -1,120 +1,65 @@
     defmodule TabPlayer do
-        def preadTab(tab) do
+
+        # We read the tabs and get rid of symbols we do not need.
+        def readTab(tab) do
             Regex.scan(~r/\w\|.*+/, tab)
             |> List.flatten
             |> Enum.map(fn n -> [String.first(n)|List.flatten(Regex.scan(~r/\d|-{1}+/, n))] end)    
         end
 
-        def transformLine([]) do 
-             []
-        end
-        def transformLine(["-","-","-" | tail]) do 
-            ["_" | transformLine tail]
-        end
-
-
-
-        def transformLine([head | tail]) do
-           [head | transformLine tail]
-        end
-
-        def concatTuple(elem, []) do
-            []
-        end 
+        def concatTuple(elem, []), do: []
         def concatTuple(elem, [head | tail]) when head == "-" do
             [head | concatTuple(elem,tail)]
         end
-
-        def concatTuple(elem, [head | tail]) do
-               [elem <> head | concatTuple(elem, tail)]
-        end
+        def concatTuple(elem, [head | tail]), do: [elem <> head | concatTuple(elem, tail)]
        
-        def noteJoin([]) do
-
-            ["-"]
+        def removeDashes([]), do: ["-"]
+        def removeDashes([head | tail]) when head != "-" do
+            [head | removeDashes(tail)]
         end
-
-        def noteJoin([head | tail]) when head != "-" do
-
-            [head | noteJoin(tail)]
-        end
-
-        def noteJoin([head | tail]) do
-            
-            noteJoin(tail)
-        end
-
-        def t1 ([]) do
-            []
-        end
-        def t1 ([head | [in_head | tail]]) do
-            [head | t1(tail)]
-        end
+        def removeDashes([head | tail]), do: removeDashes(tail)
     
-       
-        def delete_empt ([]) do
-            []
-        end 
+        def findSilence([]), do: []
+        def findSilence([["-"],["-"],["-"] | tail]) do 
+           [["_"] | findSilence tail]
+        end
 
-       def tr([]) do 
-            []
-       end
-       def tr([["-"],["-"],["-"] | tail]) do 
-           [["_"] | tr tail]
-       end
-       
-       def tr([head | tail]) when head == ["-"] do
-           tr tail
-       end
+        def findSilence([head | tail]) when head == ["-"] do
+           findSilence tail
+        end
 
-       def tr([head | tail]) do
-        [head | tr tail]
-       end
+        def findSilence([head | tail]) do
+         [head | findSilence tail]
+        end
      
-       def finall ([]) do
-           []
-       end
-
-       def finall([head | tail]) when length(head) == 1 do
-           [head | finall tail]
-       end
-
-       def finall([head | tail]) do
-           
-       end
-
-       def aggr([]) do
-           []
-       end
-
+        def dashToSlash([]), do: []
        
-       def aggr([head|tail]) when head == "-" do
-           aggr tail
-       end
+        def dashToSlash([head|tail]) when head == "-" do
+           dashToSlash tail
+        end
 
-       def aggr([head | [head1 | tail]]) when (head1 != "-" and head1 != "_" and head != "_") do
-           #Kernel.inspect(head) <> "/" <> Kernel.inspect(aggr([head1 | tail]))
-           [[head,"/"] | aggr [head1 | tail]]
-       end
+        def dashToSlash([head | [head1 | tail]]) when (head1 != "-" and head1 != "_" and head != "_") do
+            [[head,"/"] | dashToSlash [head1 | tail]]
+        end
 
-       def aggr([head | tail]) when (tail == [] or tail == ["-"]) do
+        def dashToSlash([head | tail]) when (tail == [] or tail == ["-"]) do
            [head]
-       end
+        end
 
-       def aggr([head | tail]) do
-           [[head, " "] | aggr tail]
-       end
+        def dashToSlash([head | tail]) do
+              [[head, " "] | dashToSlash tail]
+        end
 
-        def parse (tab) do
-                 tab = preadTab(tab)
+        def parse(tab) do
+                 tab = readTab(tab)
             |> Enum.map(fn n-> concatTuple hd(n), n end) 
             |> Enum.map(fn n -> tl(n) end)
             |> Enum.zip()
             |> Enum.map(fn n-> Tuple.to_list n end)
-            |> Enum.map(fn n-> noteJoin n end)
-            |> (fn n -> tr n end).()
+            |> Enum.map(fn n-> removeDashes n end)
+            |> (fn n -> findSilence n end).()
             |> List.flatten
-            |> (fn n-> aggr n end).()
+            |> (fn n-> dashToSlash n end).()
             |> Enum.join()
         end
     end

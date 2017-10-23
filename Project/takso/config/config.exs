@@ -12,7 +12,7 @@ config :takso,
 # Configures the endpoint
 config :takso, Takso.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "Csf7JFernvYO51BtuIlZsezchYoWZdIWAk2A2jReYNxQhB5Bii9uMpZH65uGJGIx",
+  secret_key_base: "SnDuueMTEswMzaw8ss1Pc96CGle7DJyHG7YgXJutZ0+vIqHNX3bLstqUi4K75Qcm",
   render_errors: [view: Takso.ErrorView, accepts: ~w(html json)],
   pubsub: [name: Takso.PubSub,
            adapter: Phoenix.PubSub.PG2]
